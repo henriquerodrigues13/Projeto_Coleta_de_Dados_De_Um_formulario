@@ -32,19 +32,32 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
     de forma relugar ate o ultimo regitro, onde ocorre uma quebra de regitro e o regirto fica divido
     entre a segunda e a terceira pagina, para isso o except IndexError existe pra coleta a regitro da que se encontra
     em uma unica linha na segunda pagina do pdf e no ultimo regitro do DataFrame
-    ->No segundo laço, alguns regitros com: ESTAGIO I,apresenta suas informações somente em uma linha, para isso
-    :param
+    ->No segundo laço, alguns regitros com: ESTAGIO I,apresenta suas informações somente em uma linha do DataFrame,
+    para isso é feita um verificação por nome para reconhece que tipo de regitro esta sendo coleta, um padrão ou
+    um incomum
+    :param tabela2 : recebe a primeira tabale da segunda pagina do PDF
+    :param tabela3 : recebe a segunda tabela  da terceira pagina do PDF
+    :return componentes_curriculares : retorna para o programa principal as informações de nome da disciplina,
+    carga horaria e media(I,R,B,E)
     '''
     tabela2 = tabela2.drop([0, 1, 2, 3, 4, 5])
     tabela2 = tabela2.reset_index(drop=True)
     componentes_curriculares = []
     try:
         for i in range(0, len(tabela2), 3):
-            componentes_curriculares.append({
-                'Componente curricular': tabela2.iloc[i, 2],
-                'CH': tabela2.iloc[i + 1, 3],
-                'Media': tabela2.iloc[i + 1, 6]
-            })
+            estatica = str(tabela2.iloc[i, 2])
+            if estatica == 'PROBABILIDADE ESTATÍSTICA':
+                componentes_curriculares.append({
+                    'Componente curricular': 'PROBABILIDADE ESTATISTICA',
+                    'CH': tabela2.iloc[i + 1, 3],
+                    'Media': tabela2.iloc[i + 1, 6]
+                })
+            else:
+                componentes_curriculares.append({
+                    'Componente curricular': tabela2.iloc[i, 2],
+                    'CH': tabela2.iloc[i + 1, 3],
+                    'Media': tabela2.iloc[i + 1, 6]
+                })
     except IndexError:
         componentes_curriculares.append({
             'Componente curricular': tabela2.iloc[i, 2],
@@ -53,6 +66,10 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
         })
     tabela3 = tabela3.drop([0, 1, 2, 3, 4, 5])
     tabela3 = tabela3.reset_index(drop=True)
+    docente = str(tabela3.iloc[0, 3]).split()
+    if 'Docente:' == docente[0]:
+        tabela3 = tabela3.drop([0])
+        tabela3 = tabela3.reset_index(drop=True)
     i = 0
     while i < len(tabela3):
         if tabela3.iloc[i, 3] in ['ESTAGIO I', 'TRABALHO DE CONCLUSAO DE CURSO I',
@@ -75,15 +92,30 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
     return componentes_curriculares
 
 def coleta_de_dados_Componetes_Curriculares_NAO_ENADE(tabela2, tabela3):
+    '''
+    coleta de dados compontes curriculares:(tabela2, tabela3)
+    :param tabela2:
+    :param tabela3:
+    :return:
+    '''
     tabela2 = tabela2.drop([0, 1, 2, 3, 4])
     tabela2 = tabela2.reset_index(drop=True)
     componentes_curriculares = []
     for i in range(0, len(tabela2), 3):
-        componentes_curriculares.append({
-            'Componente curricular': tabela2.iloc[i, 2],
-            'CH': tabela2.iloc[i + 1, 3],
-            'Media': tabela2.iloc[i + 1, 6]
-        })
+        estatica = str(tabela2.iloc[i, 2])
+        if estatica == 'PROBABILIDADE ESTATÍSTICA':
+            componentes_curriculares.append({
+                'Componente curricular': 'PROBABILIDADE ESTATISTICA',
+                'CH': tabela2.iloc[i + 1, 3],
+                'Media': tabela2.iloc[i + 1, 6]
+            })
+        else:
+            componentes_curriculares.append({
+                'Componente curricular': tabela2.iloc[i, 2],
+                'CH': tabela2.iloc[i + 1, 3],
+                'Media': tabela2.iloc[i + 1, 6]
+            })
+
     tabela3 = tabela3.drop([0, 1, 2, 3, 4])
     tabela3 = tabela3.reset_index(drop=True)
     i = 0
@@ -110,38 +142,42 @@ def coleta_de_dados_Componetes_Curriculares_NAO_ENADE(tabela2, tabela3):
 
 
 
-tables = st.file_uploader("Upload data", type='pdf')
-tabelas = camelot.read_pdf(tables, pages='1,2,3', flavor='stream')
-Primeira_tabela = tabelas[0].df
-Segunda_tabela= tabelas[1].df
-Terceira_tabela = tabelas[2].df
 
-nome = coleta_de_dados_pessoias_Nome(Primeira_tabela)
-data_nascimento = coleta_de_dados_pessoias_Data_Nascimento(Primeira_tabela)
-matricula = coleta_de_dados_pessoias_Matricula(Primeira_tabela)
-primeiro_ano_eletivo = coleta_de_dados_pessoias_Primeiro_Eletivo(Segunda_tabela)
+tables = st.file_uploader("Upload data", accept_multiple_files=True , type='pdf')
+dados = []
+if tables is not None:
+    tabelas = camelot.read_pdf(tables, pages='1,2,3', flavor='stream')
+    Primeira_tabela = tabelas[0].df
+    Segunda_tabela= tabelas[1].df
+    Terceira_tabela = tabelas[2].df
 
-dados_pessoais = [
-    {'Nome': nome},
-    {'Data de nascimento': data_nascimento},
-    {'Matricula': matricula},
-    {'Primeiro ano eletivo': primeiro_ano_eletivo}
-]
+    nome = coleta_de_dados_pessoias_Nome(Primeira_tabela)
+    data_nascimento = coleta_de_dados_pessoias_Data_Nascimento(Primeira_tabela)
+    matricula = coleta_de_dados_pessoias_Matricula(Primeira_tabela)
+    primeiro_ano_eletivo = coleta_de_dados_pessoias_Primeiro_Eletivo(Segunda_tabela)
 
-# Essa proxima linha é feito uma verificação no DataFrame se na linha 5, coluna 1 se encontra um regitro
-# com uma str 'ENADE'
-if Segunda_tabela.iloc[5, 1] == 'ENADE':
-    componentes_curriculares = coleta_de_dados_Componetes_Curriculares_ENADE(Segunda_tabela, Terceira_tabela)
+    dados_pessoais = [
+        {'Nome': nome},
+        {'Data de nascimento': data_nascimento},
+        {'Matricula': matricula},
+        {'Primeiro ano eletivo': primeiro_ano_eletivo}
+    ]
 
-else:
-    componentes_curriculares = coleta_de_dados_Componetes_Curriculares_NAO_ENADE(Segunda_tabela, Terceira_tabela)
+    # Essa proxima linha é feito uma verificação no DataFrame se na linha 5, coluna 1 se encontra um regitro
+    # com uma str 'ENADE'
+    if Segunda_tabela.iloc[5, 1] == 'ENADE':
+        componentes_curriculares = coleta_de_dados_Componetes_Curriculares_ENADE(Segunda_tabela, Terceira_tabela)
+
+    else:
+        componentes_curriculares = coleta_de_dados_Componetes_Curriculares_NAO_ENADE(Segunda_tabela, Terceira_tabela)
 
 
-dados_coletados = {
-    'dados pessoais': dados_pessoais, 'componentes curriculares': componentes_curriculares
-}
+    dados_coletados = {
+        'dados pessoais': dados_pessoais, 'componentes curriculares': componentes_curriculares
+    }
+    dados.append(dados_coletados)
 
-output = json.dumps(dados_coletados, indent=4)
+output = json.dumps(dados, indent=4)
 st.download_button(
     label="Download JSON",
     data=output,
