@@ -120,13 +120,17 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
     :param tabela2 : recebe a primeira tabale da segunda pagina do PDF
     :param tabela3 : recebe a segunda tabela  da terceira pagina do PDF
     :return componentes_curriculares : retorna para o programa principal as informações de nome da disciplina,
-    carga horaria e media(I,R,B,E)
+    carga horaria e media(I,R,B,E,S)
     '''
     tabela2 = tabela2.drop([0, 1, 2, 3, 4, 5])
     tabela2 = tabela2.reset_index(drop=True)
     componentes_curriculares = []
+    if tabela2.columns.size == 9:
+        tabela2.drop(columns=[1], inplace=True)
+        tabela2.rename(columns={2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7}, inplace=True)
+    i = 0
     try:
-        for i in range(0, len(tabela2), 3):
+        while i < len(tabela2):
             estatica = str(tabela2.iloc[i, 2])
             if estatica == 'PROBABILIDADE ESTATÍSTICA':
                 componentes_curriculares.append({
@@ -134,12 +138,16 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
                     'CH': tabela2.iloc[i + 1, 3],
                     'Media': tabela2.iloc[i + 1, 6]
                 })
+                i += 3
+            elif str(tabela2.iloc[i, 2]) == '':
+                i += 1
             else:
                 componentes_curriculares.append({
                     'Componente curricular': tabela2.iloc[i, 2],
                     'CH': tabela2.iloc[i + 1, 3],
                     'Media': tabela2.iloc[i + 1, 6]
                 })
+                i += 3
     except IndexError:
         coluna_vazia = str(tabela2.iloc[i, 6])
         if coluna_vazia != '':
@@ -149,31 +157,70 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
                 'Media': tabela2.iloc[i, 6]
             })
 
-    tabela3 = tabela3.drop([0, 1, 2, 3, 4, 5])
-    tabela3 = tabela3.reset_index(drop=True)
-    docente = str(tabela3.iloc[0, 3]).split()
-    if 'Docente:' == docente[0]:
-        tabela3 = tabela3.drop([0])
+    if tabela3.iloc[5, 1] == 'ENADE' or tabela3.iloc[5, 2] == 'ENADE':
+        tabela3 = tabela3.drop([0, 1, 2, 3, 4, 5])
         tabela3 = tabela3.reset_index(drop=True)
-    i = 0
-    while i < len(tabela3):
-        if tabela3.iloc[i, 3] in ['ESTAGIO I', 'TRABALHO DE CONCLUSAO DE CURSO I',
-                              'ATIVIDADES CURRICULARES COMPLEMENTARES I',
-                              'ATIVIDADES CURRICULARES COMPLEMENTARES II', 'ATIVIDADES CURRICULARES COMPLEMENTARES III',
-                              'ATIVIDADES COMPLEMENTARES IV', 'ESTAGIO II', 'TRABALHO DE CONCLUSAO DE CURSO II']:
-            componentes_curriculares.append({
-                'Componente curricular': tabela3.iloc[i, 3],
-                'CH': tabela3.iloc[i, 4],
-                'Media': tabela3.iloc[i, 7]
-            })
-            i += 1
-        else:
-            componentes_curriculares.append({
-                'Componente curricular': tabela3.iloc[i, 3],
-                'CH': tabela3.iloc[i + 1, 4],
-                'Media': tabela3.iloc[i + 1, 7]
-            })
-            i += 3
+        docente = str(tabela3.iloc[0, 3]).split()
+        if docente is None:
+            if 'Docente:' == docente[0]:
+                tabela3 = tabela3.drop([0])
+                tabela3 = tabela3.reset_index(drop=True)
+        i = 0
+        while i < len(tabela3):
+            if tabela3.iloc[i, 3] in ['ESTAGIO I', 'TRABALHO DE CONCLUSAO DE CURSO I',
+                                  'ATIVIDADES CURRICULARES COMPLEMENTARES I',
+                                  'ATIVIDADES CURRICULARES COMPLEMENTARES II', 'ATIVIDADES CURRICULARES COMPLEMENTARES III',
+                                  'ATIVIDADES COMPLEMENTARES IV', 'ESTAGIO II', 'TRABALHO DE CONCLUSAO DE CURSO II']:
+                componentes_curriculares.append({
+                    'Componente curricular': tabela3.iloc[i, 3],
+                    'CH': tabela3.iloc[i, 4],
+                    'Media': tabela3.iloc[i, 7]
+                })
+                i += 1
+            elif str(tabela3.iloc[i, 3]) == '':
+                i += 1
+            else:
+                componentes_curriculares.append({
+                    'Componente curricular': tabela3.iloc[i, 3],
+                    'CH': tabela3.iloc[i + 1, 4],
+                    'Media': tabela3.iloc[i + 1, 7]
+                })
+                i += 3
+    else:
+        tabela3 = tabela3.drop([0, 1, 2, 3])
+        tabela3 = tabela3.reset_index(drop=True)
+        if tabela3.columns.size == 9:
+            tabela3.drop(columns=[1], inplace=True)
+            tabela3.rename(columns={2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7}, inplace=True)
+        if tabela3.iloc[1, 6] == '':
+            tabela3 = tabela3.drop([0])
+            tabela3 = tabela3.reset_index(drop=True)
+        docente = str(tabela3.iloc[0, 2]).split()
+        if docente is not None:
+            if 'Docente:' == docente[0]:
+                tabela3 = tabela3.drop([0])
+                tabela3 = tabela3.reset_index(drop=True)
+        i = 0
+        while i < len(tabela3):
+            if tabela3.iloc[i, 2] in ['ESTAGIO I', 'TRABALHO DE CONCLUSAO DE CURSO I',
+                                  'ATIVIDADES CURRICULARES COMPLEMENTARES I',
+                                  'ATIVIDADES CURRICULARES COMPLEMENTARES II', 'ATIVIDADES CURRICULARES COMPLEMENTARES III',
+                                  'ATIVIDADES COMPLEMENTARES IV', 'ESTAGIO II', 'TRABALHO DE CONCLUSAO DE CURSO II']:
+                componentes_curriculares.append({
+                    'Componente curricular': tabela3.iloc[i, 2],
+                    'CH': tabela3.iloc[i, 3],
+                    'Media': tabela3.iloc[i, 6]
+                })
+                i += 1
+            elif str(tabela3.iloc[i, 2]) == '':
+                i += 1
+            else:
+                componentes_curriculares.append({
+                    'Componente curricular': tabela3.iloc[i, 2],
+                    'CH': tabela3.iloc[i + 1, 3],
+                    'Media': tabela3.iloc[i + 1, 6]
+                })
+                i += 3
     return componentes_curriculares
 
 def coleta_de_dados_Componetes_Curriculares_NAO_ENADE(tabela2, tabela3):
@@ -219,6 +266,8 @@ def coleta_de_dados_Componetes_Curriculares_NAO_ENADE(tabela2, tabela3):
                 'Media': tabela3.iloc[i, 7]
             })
             i += 1
+        elif str(tabela3.iloc[i, 3]) == '':
+            i += 1
         else:
             componentes_curriculares.append({
                 'Componente curricular': tabela3.iloc[i, 3],
@@ -235,7 +284,10 @@ dados = []
 tables = st.file_uploader('Upload data', accept_multiple_files=True, type='pdf')
 if tables is not None:
     for i in range(0, len(tables)):
-        tabelas = camelot.read_pdf(tables[i], pages='1,2,3', flavor='stream')
+        try:
+            tabelas = camelot.read_pdf(tables[i], pages='1,2,3', flavor='stream')
+        except:
+            tabelas = camelot.read_pdf(tables[i], pages='1,2', flavor='stream')
         Primeira_tabela = tabelas[0].df
         Segunda_tabela= tabelas[1].df
         Terceira_tabela = tabelas[2].df
@@ -254,14 +306,14 @@ if tables is not None:
         ]
 
         if ("Componentes Curriculares Obrigatórios Pendentes:" in pedente1) or ("Componentes Curriculares Obrigatórios Pendentes:" in pedente2):
-            if Segunda_tabela.iloc[5, 1] == 'ENADE'or Segunda_tabela.iloc[5, 2] == 'ENADE':
+            if Segunda_tabela.iloc[5, 1] == 'ENADE' or Segunda_tabela.iloc[5, 2] == 'ENADE':
                 componentes_curriculares = coleta_de_dados_Componetes_Curriculares_Pendentes_ENADE(Segunda_tabela)
             else:
                 componentes_curriculares = coleta_de_dados_Componetes_Curriculares_Pendentes_NAO_ENADE(Segunda_tabela)
         else:
-        # Essa proxima linha é feito uma verificação no DataFrame se na linha 5, coluna 1 se encontra um regitro
+        # Essa proxima linha é feito uma verificação no DataFrame se na linha 5, coluna 1 ou 2 se encontra um regitro
         # com uma str 'ENADE'
-            if Segunda_tabela.iloc[5, 1] == 'ENADE':
+            if Segunda_tabela.iloc[5, 1] == 'ENADE'  or Segunda_tabela.iloc[5, 2] == 'ENADE':
                 componentes_curriculares = coleta_de_dados_Componetes_Curriculares_ENADE(Segunda_tabela, Terceira_tabela)
 
             else:
