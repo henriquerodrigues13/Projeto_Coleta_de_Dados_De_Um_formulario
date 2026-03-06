@@ -109,19 +109,6 @@ def coleta_de_dados_Componetes_Curriculares_Pendentes_ENADE(tabela2):
     return componentes_curriculares
 
 def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
-    '''coleta de dados compontes curriculares:(tabela2, tabela3)
-    ->Caso a verificação seja Verdadeira para 'ENADE' acontecera um laço que coletara as informações
-    de forma relugar ate o ultimo regitro, onde ocorre uma quebra de regitro e o regirto fica divido
-    entre a segunda e a terceira pagina, para isso o except IndexError existe pra coleta a regitro da que se encontra
-    em uma unica linha na segunda pagina do pdf e no ultimo regitro do DataFrame
-    ->No segundo laço, alguns regitros com: ESTAGIO I,apresenta suas informações somente em uma linha do DataFrame,
-    para isso é feita um verificação por nome para reconhece que tipo de regitro esta sendo coleta, um padrão ou
-    um incomum
-    :param tabela2 : recebe a primeira tabale da segunda pagina do PDF
-    :param tabela3 : recebe a segunda tabela  da terceira pagina do PDF
-    :return componentes_curriculares : retorna para o programa principal as informações de nome da disciplina,
-    carga horaria e media(I,R,B,E,S)
-    '''
     tabela2 = tabela2.drop([0, 1, 2, 3, 4, 5])
     tabela2 = tabela2.reset_index(drop=True)
     componentes_curriculares = []
@@ -212,7 +199,7 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
                     'Media': tabela3.iloc[i, 6]
                 })
                 i += 1
-            elif str(tabela3.iloc[i, 2]) == '':
+            elif str(tabela3.iloc[i, 2]) == '' or str(tabela3.iloc[i + 1, 3]) == '':
                 i += 1
             else:
                 componentes_curriculares.append({
@@ -332,5 +319,4 @@ if dados != []:
         label="Download JSON",
         data=output,
         file_name="dados_coletados.json",
-        icon=":material/download:",
     )
