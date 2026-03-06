@@ -211,12 +211,6 @@ def coleta_de_dados_Componetes_Curriculares_ENADE(tabela2, tabela3):
     return componentes_curriculares
 
 def coleta_de_dados_Componetes_Curriculares_NAO_ENADE(tabela2, tabela3):
-    '''
-    coleta de dados compontes curriculares:(tabela2, tabela3)
-    :param tabela2:
-    :param tabela3:
-    :return:
-    '''
     tabela2 = tabela2.drop([0, 1, 2, 3, 4])
     tabela2 = tabela2.reset_index(drop=True)
     componentes_curriculares = []
