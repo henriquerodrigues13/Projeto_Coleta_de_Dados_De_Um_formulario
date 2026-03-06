@@ -3,7 +3,8 @@ import camelot
 import pandas as pd
 import json
 import streamlit as st
-from io import StringIO
+import pypdf
+
 
 def coleta_de_dados_pessoias_Nome(tabela1):
     nome = str(tabela1.iloc[10, 0]).split()
@@ -27,6 +28,28 @@ def coleta_de_dados_pessoias_Primeiro_Eletivo(tabela2):
         primeiro_ano_eletivo = tabela2.iloc[6, 0]
     return primeiro_ano_eletivo
 
+def coleta_de_dados_pessoias_Polo(texto):
+    pdf = pypdf.PdfWriter(texto)
+    texto_completo = []
+    texto_completo = pdf.pages[0].extract_text()
+    texto_completo = texto_completo.split()
+    x = 0
+    campus = []
+    for i in range(len(texto_completo)):
+        if texto_completo[i] == 'SISTEMAS' or x == 1:
+            campus.append(texto_completo[i])
+            x = 1
+            if texto_completo[i] == 'BACHARELADO':
+                break
+    if campus[4] == '-':
+        polo = 'Cameta'
+    else:
+        campus = campus[4].split('/')
+        if campus[0] == 'OEIRAS':
+            polo = 'Oeiras'
+        else:
+            polo = 'Limoeiro'
+    return polo
 
 def coleta_de_dados_Componetes_Curriculares_Pendentes_NAO_ENADE(tabela2):
     tabela2 = tabela2.drop([0, 1, 2, 3, 4])
@@ -278,12 +301,14 @@ if tables is not None:
         data_nascimento = coleta_de_dados_pessoias_Data_Nascimento(Primeira_tabela)
         matricula = coleta_de_dados_pessoias_Matricula(Primeira_tabela)
         primeiro_ano_eletivo = coleta_de_dados_pessoias_Primeiro_Eletivo(Segunda_tabela)
+        Polo = coleta_de_dados_pessoias_Polo(tables[i])
 
         dados_pessoais = [
             {'Nome': nome},
             {'Data de nascimento': data_nascimento},
             {'Matricula': matricula},
-            {'Primeiro ano eletivo': primeiro_ano_eletivo}
+            {'Primeiro ano eletivo': primeiro_ano_eletivo},
+            {'Polo': Polo}
         ]
 
         if ("Componentes Curriculares Obrigatórios Pendentes:" in pedente1) or ("Componentes Curriculares Obrigatórios Pendentes:" in pedente2):
